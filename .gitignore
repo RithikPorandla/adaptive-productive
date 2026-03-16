@@ -1,0 +1,10 @@
+# Generated agent prompts (recreated on each run)
+agents/runs/
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+# IDE
+.idea/
+.vscode/
