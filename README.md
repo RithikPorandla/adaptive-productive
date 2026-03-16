@@ -39,3 +39,7 @@ cd src/backend && npm install && npm run dev
 ```
 
 See [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) for the step-by-step build process.
+
+## Desktop Access
+
+For GUI apps (emulators, browser preview, visual testing), the environment is configured for display access. See [docs/DESKTOP_ACCESS.md](docs/DESKTOP_ACCESS.md).

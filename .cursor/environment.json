@@ -1,0 +1,9 @@
+{
+  "install": "npm install --prefix src/backend 2>/dev/null || true; pip install -q pyyaml 2>/dev/null || true",
+  "env": {
+    "DISPLAY": ":99",
+    "NODE_ENV": "development"
+  },
+  "start": "Xvfb :99 -screen 0 1920x1080x24 -ac 2>/dev/null & || true",
+  "terminals": []
+}
