@@ -28,3 +28,14 @@ python3 agents/orchestrator.py evolve product-manager
 ```
 
 See [agents/README.md](agents/README.md) and [docs/AGENT_ARCHITECTURE.md](docs/AGENT_ARCHITECTURE.md) for details.
+
+## Development
+
+```bash
+# Backend
+cd src/backend && npm install && npm run dev
+# API: http://localhost:3000
+# Health: http://localhost:3000/api/health
+```
+
+See [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) for the step-by-step build process.
