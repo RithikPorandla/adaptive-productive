@@ -62,7 +62,7 @@ Step 6 (AI) ──→ Step 7 (Timer/Notif) ──→ Step 8 (Dashboard)
 
 ## Current Step
 
-We're on **Step 2: Core Data Model** (Step 1 complete).
+We're on **Step 3: Task & Schedule APIs** (Steps 1–2 complete).
 
 ---
 
@@ -82,3 +82,24 @@ cd src/backend && npm install && npm run dev
 ```
 
 **Thinking:** We kept it minimal. The DB layer returns a connection; we'll add schema in Step 2. The health check proves the stack works before we add real features.
+
+## Step 2 Complete ✓
+
+**What we built:**
+- `src/backend/db/schema.js` – Schema definitions for `users`, `tasks`, and `schedules` tables
+- Updated `src/backend/db/index.js` – Runs schema creation on init, enables foreign keys
+
+**Schema:**
+- **users** – `id`, `email` (unique), `name`, `avatar_url`, `auth_provider`, `auth_id`, timestamps
+- **tasks** – `id`, `user_id` (FK), `title`, `description`, `due_date`, `estimated_minutes`, `status` (pending/in_progress/completed/cancelled), `priority` (low/medium/high), `parent_task_id` (FK self-ref for subtasks), `position`, timestamps
+- **schedules** – `id`, `user_id` (FK), `title`, `day_of_week` (0–6), `start_time`, `end_time`, `location`, `color`, timestamps
+- Indexes on `tasks(user_id, status, due_date, parent_task_id)` and `schedules(user_id, day_of_week)`
+
+**Design decisions:**
+- `parent_task_id` on tasks enables AI decomposition (Step 6) – a parent task can have subtasks
+- `position` field allows ordered subtasks and drag-to-reorder
+- `status` and `priority` use CHECK constraints for data integrity
+- All foreign keys use `ON DELETE CASCADE` for clean user deletion
+- `auth_provider` + `auth_id` on users prepares for OAuth2 (Google, Apple) in a future step
+
+**Thinking:** We defined the data model before building APIs (Step 3). The schema directly reflects the PRD's core entities: students have tasks with deadlines and schedules with class times. The subtask support is critical for AI task decomposition later.
