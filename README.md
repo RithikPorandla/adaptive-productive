@@ -32,11 +32,29 @@ See [agents/README.md](agents/README.md) and [docs/AGENT_ARCHITECTURE.md](docs/A
 ## Development
 
 ```bash
-# Backend
+# Backend (start first)
 cd src/backend && npm install && npm run dev
 # API: http://localhost:3000
 # Health: http://localhost:3000/api/health
+
+# Frontend (in a separate terminal)
+cd src/frontend && npm install && npm run dev
+# App: http://localhost:5173
 ```
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| CRUD | `/api/users` | User management |
+| CRUD | `/api/tasks` | Task management (with subtask support) |
+| CRUD | `/api/schedules` | Class schedule management |
+| GET | `/api/plan/today?user_id=X` | Today's combined plan |
+| POST | `/api/ai/tasks/:id/decompose` | AI task decomposition |
+| POST/GET | `/api/focus` | Focus session management |
+| PUT | `/api/focus/:id/complete` | Complete a focus session |
+| GET | `/api/dashboard?user_id=X` | Progress dashboard stats |
 
 See [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) for the step-by-step build process.
 

@@ -62,7 +62,7 @@ Step 6 (AI) ──→ Step 7 (Timer/Notif) ──→ Step 8 (Dashboard)
 
 ## Current Step
 
-We're on **Step 3: Task & Schedule APIs** (Steps 1–2 complete).
+All steps (1–8) are **complete**. The app is fully functional end-to-end.
 
 ---
 
@@ -103,3 +103,53 @@ cd src/backend && npm install && npm run dev
 - `auth_provider` + `auth_id` on users prepares for OAuth2 (Google, Apple) in a future step
 
 **Thinking:** We defined the data model before building APIs (Step 3). The schema directly reflects the PRD's core entities: students have tasks with deadlines and schedules with class times. The subtask support is critical for AI task decomposition later.
+
+## Step 3 Complete ✓
+
+**What we built:**
+- `src/backend/api/users.js` – Full CRUD for user management
+- `src/backend/api/tasks.js` – Task CRUD with filtering (by user, status, parent)
+- `src/backend/api/schedules.js` – Schedule CRUD with day-of-week filtering
+
+**Endpoints:**
+- `POST/GET/PUT/DELETE /api/users` and `/api/users/:id`
+- `POST/GET/PUT/DELETE /api/tasks` and `/api/tasks/:id` (includes subtasks)
+- `POST/GET/PUT/DELETE /api/schedules` and `/api/schedules/:id`
+
+## Step 4 Complete ✓
+
+**What we built:**
+- `src/backend/api/plan.js` – Today's plan endpoint
+
+**Endpoint:** `GET /api/plan/today?user_id=X` — Returns today's classes (by day of week) and pending/in-progress tasks sorted by priority, with a summary.
+
+## Step 5 Complete ✓
+
+**What we built:**
+- `src/frontend/` – React + Vite web app with 5 pages
+- Dashboard, Today's Plan, Tasks, Schedule, Focus Timer
+- Sidebar navigation, modern clean UI
+- Vite proxy to backend API
+
+## Step 6 Complete ✓
+
+**What we built:**
+- `src/backend/services/ai.js` – AI decomposition with OpenAI GPT-4 + heuristic fallback
+- `src/backend/api/ai.js` – Decompose endpoint
+
+**Endpoint:** `POST /api/ai/tasks/:id/decompose` — Breaks a task into 3-5 subtasks. Uses OpenAI when `OPENAI_API_KEY` is set, otherwise falls back to intelligent heuristics.
+
+## Step 7 Complete ✓
+
+**What we built:**
+- `focus_sessions` table added to schema
+- `src/backend/api/focus.js` – Focus session management
+
+**Endpoints:** `POST /api/focus`, `GET /api/focus?user_id=X`, `PUT /api/focus/:id/complete`, `PUT /api/focus/:id/cancel`
+
+## Step 8 Complete ✓
+
+**What we built:**
+- `src/backend/api/dashboard.js` – Progress dashboard
+
+**Endpoint:** `GET /api/dashboard?user_id=X` — Returns task completion rate, overdue count, focus time totals, subtask stats.
