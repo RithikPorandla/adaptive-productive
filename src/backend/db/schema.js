@@ -54,8 +54,24 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_tasks_status          ON tasks(status);
   CREATE INDEX IF NOT EXISTS idx_tasks_due_date        ON tasks(due_date);
   CREATE INDEX IF NOT EXISTS idx_tasks_parent_task_id  ON tasks(parent_task_id);
+  CREATE TABLE IF NOT EXISTS focus_sessions (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id          INTEGER NOT NULL,
+    task_id          INTEGER,
+    duration_minutes INTEGER NOT NULL DEFAULT 25,
+    status           TEXT    NOT NULL DEFAULT 'active'
+                       CHECK (status IN ('active','completed','cancelled')),
+    started_at       TEXT    NOT NULL DEFAULT (datetime('now')),
+    ended_at         TEXT,
+    created_at       TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
+  );
+
   CREATE INDEX IF NOT EXISTS idx_schedules_user_id     ON schedules(user_id);
   CREATE INDEX IF NOT EXISTS idx_schedules_day         ON schedules(day_of_week);
+  CREATE INDEX IF NOT EXISTS idx_focus_user_id          ON focus_sessions(user_id);
+  CREATE INDEX IF NOT EXISTS idx_focus_status            ON focus_sessions(status);
 `;
 
 /**
