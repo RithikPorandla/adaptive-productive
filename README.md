@@ -32,10 +32,16 @@ See [agents/README.md](agents/README.md) and [docs/AGENT_ARCHITECTURE.md](docs/A
 ## Development
 
 ```bash
-# Backend
+# 1. Backend
 cd src/backend && npm install && npm run dev
 # API: http://localhost:3000
-# Health: http://localhost:3000/api/health
+
+# 2. Mobile app (new terminal)
+cd src/mobile && npm install && npm run web
+# Or: npm run android / npm run ios
+
+# 3. Seed demo data (optional)
+node scripts/seed-demo.js
 ```
 
 See [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) for the step-by-step build process.

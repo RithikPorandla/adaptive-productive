@@ -62,7 +62,23 @@ Step 6 (AI) ──→ Step 7 (Timer/Notif) ──→ Step 8 (Dashboard)
 
 ## Current Step
 
-We're on **Step 2: Core Data Model** (Step 1 complete).
+**All steps complete.** ✓
+
+---
+
+## Steps 2–8 Complete ✓
+
+**What we built:**
+
+- **Step 2:** DB schema (users, tasks, schedule_items, study_sessions)
+- **Step 3:** REST APIs – tasks, schedule, plan, study, AI decompose
+- **Step 4:** Today's plan endpoint – combines schedule + tasks by date
+- **Step 5:** React Native (Expo) app – 4 tabs, polished UI
+- **Step 6:** AI task decomposition – OpenAI API + template fallback
+- **Step 7:** Focus timer – 25min Pomodoro, 5min break, logs sessions
+- **Step 8:** Progress dashboard – % done, study hours, session history
+
+**Design:** Teal primary, coral accent, warm neutrals. See `docs/design/design-system.md`.
 
 ---
 

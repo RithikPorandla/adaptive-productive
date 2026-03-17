@@ -22,9 +22,10 @@ export function getDb() {
   return db;
 }
 
+import { runMigrations } from "./schema.js";
+
 export async function initDb() {
   const database = getDb();
-  // Schema will be created in Step 2; for now just verify connection
-  database.prepare("SELECT 1").run();
+  runMigrations(database);
   return database;
 }
