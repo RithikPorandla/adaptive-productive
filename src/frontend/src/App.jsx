@@ -39,35 +39,37 @@ export default function App() {
   }, []);
 
   if (loading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
-        Loading...
-      </div>
-    );
+    return <div className="loading-screen">ADAPTIVE PRODUCTIVE</div>;
   }
 
   return (
     <UserContext.Provider value={user}>
       <div className="app">
         <aside className="sidebar">
-          <h1>Adaptive Productive</h1>
+          <div className="sidebar-brand">
+            <h1>Adaptive Productive</h1>
+            <div className="brand-sub">SPQR Studio</div>
+          </div>
           <nav>
             <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="icon">📊</span> Dashboard
+              <span className="nav-icon">I</span> Overview
             </NavLink>
             <NavLink to="/today" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="icon">📋</span> Today's Plan
+              <span className="nav-icon">II</span> Today
             </NavLink>
             <NavLink to="/tasks" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="icon">✅</span> Tasks
+              <span className="nav-icon">III</span> Tasks
             </NavLink>
             <NavLink to="/schedule" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="icon">📅</span> Schedule
+              <span className="nav-icon">IV</span> Schedule
             </NavLink>
             <NavLink to="/focus" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="icon">⏱️</span> Focus Timer
+              <span className="nav-icon">V</span> Focus
             </NavLink>
           </nav>
+          <div className="sidebar-footer">
+            {user?.name || "Scholar"}
+          </div>
         </aside>
         <main className="main">
           <Routes>

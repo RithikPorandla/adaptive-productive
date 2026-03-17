@@ -71,30 +71,30 @@ export default function FocusTimer() {
 
   return (
     <div>
-      <h1 className="page-title">Focus Timer</h1>
-      <p className="page-subtitle">Pomodoro-style focus sessions to boost productivity</p>
+      <div className="page-header">
+        <h1 className="page-title">Focus</h1>
+        <p className="page-subtitle">Discipline is the bridge between goals and accomplishment</p>
+      </div>
 
       <div className="card timer-display">
-        <div style={{
-          width: 200, height: 200, borderRadius: "50%", margin: "0 auto 24px",
-          background: `conic-gradient(var(--primary) ${progress * 3.6}deg, var(--accent) 0deg)`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <div style={{
-            width: 170, height: 170, borderRadius: "50%", background: "var(--surface)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
+        <div
+          className="timer-ring-outer"
+          style={{
+            background: `conic-gradient(var(--gold) ${progress * 3.6}deg, var(--border) 0deg)`,
+          }}
+        >
+          <div className="timer-ring-inner">
             <div className="timer-time">{formatTime(timeLeft)}</div>
           </div>
         </div>
         <div className="timer-label">
-          {session ? "Focus session in progress..." : "Ready to focus?"}
+          {session ? "Session in progress..." : "Ready when you are"}
         </div>
 
         {!session && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 20, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 24, flexWrap: "wrap" }}>
             <div className="form-group" style={{ margin: 0, width: 120 }}>
-              <label>Minutes</label>
+              <label>Duration</label>
               <select value={duration} onChange={(e) => { setDuration(Number(e.target.value)); setTimeLeft(Number(e.target.value) * 60); }}>
                 <option value={15}>15 min</option>
                 <option value={25}>25 min</option>
@@ -104,7 +104,7 @@ export default function FocusTimer() {
             </div>
             {tasks.length > 0 && (
               <div className="form-group" style={{ margin: 0, width: 200 }}>
-                <label>Task (optional)</label>
+                <label>Task</label>
                 <select value={selectedTask} onChange={(e) => setSelectedTask(e.target.value)}>
                   <option value="">No task</option>
                   {tasks.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
@@ -116,26 +116,26 @@ export default function FocusTimer() {
 
         <div className="timer-controls">
           {!session ? (
-            <button className="btn btn-primary btn-lg" onClick={handleStart}>Start Focus</button>
+            <button className="btn btn-primary btn-lg" onClick={handleStart}>Begin</button>
           ) : (
             <>
               <button className="btn btn-success btn-lg" onClick={handleComplete}>Complete</button>
-              <button className="btn btn-danger btn-lg" onClick={handleCancel}>Cancel</button>
+              <button className="btn btn-danger btn-lg" onClick={handleCancel}>Abandon</button>
             </>
           )}
         </div>
       </div>
 
       {history.length > 0 && (
-        <div className="card">
-          <div className="card-header">
-            <span className="card-title">Recent Sessions</span>
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          <div className="card-header" style={{ padding: "14px 20px", margin: 0 }}>
+            <span className="card-title">History</span>
           </div>
           {history.slice(0, 10).map((h) => (
             <div key={h.id} className="task-item">
               <div className="task-info">
                 <div className="task-title">
-                  {h.task_title || "Free focus"} — {h.duration_minutes}min
+                  {h.task_title || "Free focus"} — {h.duration_minutes}m
                 </div>
                 <div className="task-meta">
                   <span className={`badge badge-${h.status}`}>{h.status}</span>
