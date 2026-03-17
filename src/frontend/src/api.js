@@ -40,6 +40,8 @@ export const api = {
 
   // AI
   decompose: (taskId) => request(`/ai/tasks/${taskId}/decompose`, { method: "POST" }),
+  parseTask: (input) => request("/ai/parse-task", { method: "POST", body: JSON.stringify({ input }) }),
+  getInsights: (userId) => request(`/ai/insights?user_id=${userId}`),
 
   // Focus
   startFocus: (body) => request("/focus", { method: "POST", body: JSON.stringify(body) }),

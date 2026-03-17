@@ -14,12 +14,14 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [plan, setPlan] = useState(null);
   const [recentFocus, setRecentFocus] = useState([]);
+  const [insights, setInsights] = useState(null);
 
   useEffect(() => {
     if (!user) return;
     api.getDashboard(user.id).then(setData).catch(console.error);
     api.getTodayPlan(user.id).then(setPlan).catch(console.error);
     api.getFocusSessions(user.id).then(s => setRecentFocus(s.slice(0, 5))).catch(console.error);
+    api.getInsights(user.id).then(setInsights).catch(console.error);
   }, [user]);
 
   if (!data) return <div className="loading-screen">Loading...</div>;
@@ -58,6 +60,22 @@ export default function Dashboard() {
             <div className="dash-stat-label">Focus time</div>
           </div>
         </div>
+
+        {/* AI Insights */}
+        {insights && (
+          <div className="card ai-card card-padded" style={{ marginBottom: 16 }}>
+            <div className="ai-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a5 5 0 015 5c0 2-1 3-2 4l-1 1v2h-4v-2l-1-1c-1-1-2-2-2-4a5 5 0 015-5z"/><path d="M10 18h4"/><path d="M10 22h4"/></svg>
+              AI Study Coach
+            </div>
+            <div className="ai-text">{insights.tip}</div>
+            {insights.next_task && (
+              <div className="ai-suggestion">
+                <strong>Work on next:</strong> {insights.next_task.task.title} — {insights.next_task.reason}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Two-column layout */}
         <div className="dash-grid">

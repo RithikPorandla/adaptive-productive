@@ -18,7 +18,18 @@ export default function Tasks() {
   const handleQuickAdd = async (e) => {
     e.preventDefault();
     if (!quickTitle.trim()) return;
-    await api.createTask({ user_id: user.id, title: quickTitle.trim() });
+    try {
+      const parsed = await api.parseTask(quickTitle.trim());
+      await api.createTask({
+        user_id: user.id,
+        title: parsed.title || quickTitle.trim(),
+        priority: parsed.priority || "medium",
+        due_date: parsed.due_date || null,
+        estimated_minutes: parsed.estimated_minutes || null,
+      });
+    } catch {
+      await api.createTask({ user_id: user.id, title: quickTitle.trim() });
+    }
     setQuickTitle("");
     loadTasks();
   };
@@ -69,9 +80,10 @@ export default function Tasks() {
       </div>
 
       <form onSubmit={handleQuickAdd} className="quick-add">
-        <input value={quickTitle} onChange={e => setQuickTitle(e.target.value)} placeholder="Add a task..." />
+        <input value={quickTitle} onChange={e => setQuickTitle(e.target.value)} placeholder='Try: "Write essay on climate change, due Friday, 3 hours, high priority"' />
         <button type="submit" className="btn btn-primary btn-sm">Add</button>
       </form>
+      <div className="ai-parsing-hint">AI auto-detects priority, due date, and time estimate from your input</div>
 
       {showForm && (
         <div style={{ padding: "16px 32px", borderBottom: "1px solid var(--border)" }}>

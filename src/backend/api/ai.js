@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getDb } from "../db/index.js";
-import { decomposeTask } from "../services/ai.js";
+import { decomposeTask, parseTaskInput, generateStudyTip, suggestNextTask } from "../services/ai.js";
 
 export const aiRouter = Router();
 
@@ -46,6 +46,48 @@ aiRouter.post("/tasks/:id/decompose", async (req, res) => {
       parent_task_id: task.id,
       engine: process.env.OPENAI_API_KEY ? "openai" : "heuristic",
       subtasks: created,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/ai/parse-task — Parse natural-language input into structured task fields
+aiRouter.post("/parse-task", async (req, res) => {
+  try {
+    const { input } = req.body;
+    if (!input) return res.status(400).json({ error: "input is required" });
+    const parsed = await parseTaskInput(input);
+    res.json({ ...parsed, engine: process.env.OPENAI_API_KEY ? "openai" : "heuristic" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/ai/insights?user_id=X — Study tip + next-task suggestion
+aiRouter.get("/insights", async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ error: "user_id is required" });
+
+    const db = getDb();
+    const tasks = db.prepare(
+      "SELECT * FROM tasks WHERE user_id = ? AND parent_task_id IS NULL ORDER BY created_at DESC"
+    ).all(user_id);
+
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const classes = db.prepare(
+      "SELECT * FROM schedules WHERE user_id = ? AND day_of_week = ? ORDER BY start_time"
+    ).all(user_id, dayOfWeek);
+
+    const tip = await generateStudyTip(tasks, classes);
+    const next = suggestNextTask(tasks);
+
+    res.json({
+      tip,
+      next_task: next,
+      engine: process.env.OPENAI_API_KEY ? "openai" : "heuristic",
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
