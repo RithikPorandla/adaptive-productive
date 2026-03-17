@@ -70,17 +70,17 @@ export default function FocusTimer() {
   const progress = session ? ((duration * 60 - timeLeft) / (duration * 60)) * 100 : 0;
 
   return (
-    <div>
+    <div className="fade-in">
       <div className="page-header">
         <h1 className="page-title">Focus</h1>
-        <p className="page-subtitle">Discipline is the bridge between goals and accomplishment</p>
+        <p className="page-subtitle">Stay in the zone</p>
       </div>
 
       <div className="card timer-display">
         <div
           className="timer-ring-outer"
           style={{
-            background: `conic-gradient(var(--gold) ${progress * 3.6}deg, var(--border) 0deg)`,
+            background: `conic-gradient(rgba(255,255,255,0.8) ${progress * 3.6}deg, var(--border) 0deg)`,
           }}
         >
           <div className="timer-ring-inner">
@@ -88,12 +88,12 @@ export default function FocusTimer() {
           </div>
         </div>
         <div className="timer-label">
-          {session ? "Session in progress..." : "Ready when you are"}
+          {session ? "Session active" : "Ready"}
         </div>
 
         {!session && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 24, flexWrap: "wrap" }}>
-            <div className="form-group" style={{ margin: 0, width: 120 }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 28, flexWrap: "wrap" }}>
+            <div className="form-group" style={{ margin: 0, width: 110 }}>
               <label>Duration</label>
               <select value={duration} onChange={(e) => { setDuration(Number(e.target.value)); setTimeLeft(Number(e.target.value) * 60); }}>
                 <option value={15}>15 min</option>
@@ -116,11 +116,11 @@ export default function FocusTimer() {
 
         <div className="timer-controls">
           {!session ? (
-            <button className="btn btn-primary btn-lg" onClick={handleStart}>Begin</button>
+            <button className="btn btn-primary btn-lg" onClick={handleStart}>Start</button>
           ) : (
             <>
               <button className="btn btn-success btn-lg" onClick={handleComplete}>Complete</button>
-              <button className="btn btn-danger btn-lg" onClick={handleCancel}>Abandon</button>
+              <button className="btn btn-danger btn-lg" onClick={handleCancel}>Cancel</button>
             </>
           )}
         </div>
@@ -128,15 +128,14 @@ export default function FocusTimer() {
 
       {history.length > 0 && (
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-          <div className="card-header" style={{ padding: "14px 20px", margin: 0 }}>
+          <div className="card-header" style={{ padding: "12px 20px", margin: 0 }}>
             <span className="card-title">History</span>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{history.length} session{history.length !== 1 ? "s" : ""}</span>
           </div>
-          {history.slice(0, 10).map((h) => (
+          {history.slice(0, 8).map((h) => (
             <div key={h.id} className="task-item">
               <div className="task-info">
-                <div className="task-title">
-                  {h.task_title || "Free focus"} — {h.duration_minutes}m
-                </div>
+                <div className="task-title">{h.task_title || "Free focus"} · {h.duration_minutes}m</div>
                 <div className="task-meta">
                   <span className={`badge badge-${h.status}`}>{h.status}</span>
                   <span>{new Date(h.started_at).toLocaleString()}</span>

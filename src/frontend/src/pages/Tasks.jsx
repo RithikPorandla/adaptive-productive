@@ -6,6 +6,7 @@ export default function Tasks() {
   const user = useUser();
   const [tasks, setTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [quickTitle, setQuickTitle] = useState("");
   const [form, setForm] = useState({ title: "", description: "", due_date: "", estimated_minutes: "", priority: "medium" });
   const [expandedTask, setExpandedTask] = useState(null);
 
@@ -14,6 +15,14 @@ export default function Tasks() {
   };
 
   useEffect(loadTasks, [user]);
+
+  const handleQuickAdd = async (e) => {
+    e.preventDefault();
+    if (!quickTitle.trim()) return;
+    await api.createTask({ user_id: user.id, title: quickTitle.trim() });
+    setQuickTitle("");
+    loadTasks();
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -30,9 +39,7 @@ export default function Tasks() {
   const handleStatusChange = async (id, status) => {
     await api.updateTask(id, { status });
     loadTasks();
-    if (expandedTask?.id === id) {
-      setExpandedTask(await api.getTask(id));
-    }
+    if (expandedTask?.id === id) setExpandedTask(await api.getTask(id));
   };
 
   const handleDelete = async (id) => {
@@ -56,35 +63,44 @@ export default function Tasks() {
   };
 
   return (
-    <div>
+    <div className="fade-in">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div className="page-header">
           <h1 className="page-title">Tasks</h1>
-          <p className="page-subtitle">Divide and conquer your assignments</p>
+          <p className="page-subtitle">{tasks.length} task{tasks.length !== 1 ? "s" : ""}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginTop: 4 }}>
-          {showForm ? "Cancel" : "+ New Task"}
+        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginTop: 8 }}>
+          {showForm ? "Cancel" : "Detailed add"}
         </button>
       </div>
 
+      <form onSubmit={handleQuickAdd} className="quick-add">
+        <input
+          value={quickTitle}
+          onChange={(e) => setQuickTitle(e.target.value)}
+          placeholder="Add a task..."
+        />
+        <button type="submit" className="btn btn-primary">Add</button>
+      </form>
+
       {showForm && (
-        <div className="card">
+        <div className="card" style={{ marginBottom: 20 }}>
           <form onSubmit={handleCreate}>
             <div className="form-group">
               <label>Title</label>
-              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="e.g. Research Paper: AI Ethics" />
+              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="What needs to be done?" />
             </div>
             <div className="form-group">
               <label>Description</label>
-              <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Details about the task..." />
+              <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Add details..." />
             </div>
             <div className="form-row">
               <div className="form-group">
-                <label>Due Date</label>
+                <label>Due date</label>
                 <input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>Est. Minutes</label>
+                <label>Minutes</label>
                 <input type="number" value={form.estimated_minutes} onChange={(e) => setForm({ ...form, estimated_minutes: e.target.value })} placeholder="120" />
               </div>
               <div className="form-group">
@@ -96,16 +112,13 @@ export default function Tasks() {
                 </select>
               </div>
             </div>
-            <button type="submit" className="btn btn-primary">Create Task</button>
+            <button type="submit" className="btn btn-primary">Create</button>
           </form>
         </div>
       )}
 
       {tasks.length === 0 ? (
-        <div className="card empty">
-          <div className="empty-icon">---</div>
-          <p>No tasks yet. Begin your conquest.</p>
-        </div>
+        <div className="empty">No tasks yet</div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           {tasks.map((task) => (
@@ -116,19 +129,19 @@ export default function Tasks() {
                   <div className="task-meta">
                     <span className={`badge badge-${task.priority}`}>{task.priority}</span>
                     <span className={`badge badge-${task.status}`}>{task.status.replace("_", " ")}</span>
-                    {task.due_date && <span>Due {task.due_date}</span>}
+                    {task.due_date && <span>{task.due_date}</span>}
                     {task.estimated_minutes && <span>{task.estimated_minutes}m</span>}
                   </div>
                 </div>
                 <div className="task-actions">
                   {task.status === "pending" && (
-                    <button className="btn btn-secondary btn-sm" onClick={() => handleStatusChange(task.id, "in_progress")}>Start</button>
+                    <button className="btn btn-sm" onClick={() => handleStatusChange(task.id, "in_progress")}>Start</button>
                   )}
                   {task.status === "in_progress" && (
                     <button className="btn btn-success btn-sm" onClick={() => handleStatusChange(task.id, "completed")}>Done</button>
                   )}
-                  <button className="btn btn-secondary btn-sm" onClick={() => handleDecompose(task.id)} title="Decompose with AI">Divide</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(task.id)}>x</button>
+                  <button className="btn btn-sm" onClick={() => handleDecompose(task.id)} title="Break down with AI">Break down</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(task.id)}>Remove</button>
                 </div>
               </div>
 
@@ -138,7 +151,7 @@ export default function Tasks() {
                     <div key={st.id} className="subtask-item">
                       <span className={`badge badge-${st.status}`}>{st.status}</span>
                       <span>{st.title}</span>
-                      {st.estimated_minutes && <span style={{ color: "var(--text-muted)", fontSize: 12 }}>({st.estimated_minutes}m)</span>}
+                      {st.estimated_minutes && <span style={{ color: "var(--text-muted)" }}>({st.estimated_minutes}m)</span>}
                       {st.status === "pending" && (
                         <button className="btn btn-success btn-sm" onClick={() => handleStatusChange(st.id, "completed")} style={{ marginLeft: "auto" }}>Done</button>
                       )}

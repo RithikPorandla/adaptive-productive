@@ -39,7 +39,7 @@ export default function App() {
   }, []);
 
   if (loading) {
-    return <div className="loading-screen">ADAPTIVE PRODUCTIVE</div>;
+    return <div className="loading-screen">adaptive productive</div>;
   }
 
   return (
@@ -47,28 +47,27 @@ export default function App() {
       <div className="app">
         <aside className="sidebar">
           <div className="sidebar-brand">
-            <h1>Adaptive Productive</h1>
-            <div className="brand-sub">SPQR Studio</div>
+            <h1>adaptive</h1>
           </div>
           <nav>
             <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="nav-icon">I</span> Overview
+              Overview
             </NavLink>
             <NavLink to="/today" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="nav-icon">II</span> Today
+              Today
             </NavLink>
             <NavLink to="/tasks" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="nav-icon">III</span> Tasks
+              Tasks
             </NavLink>
             <NavLink to="/schedule" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="nav-icon">IV</span> Schedule
+              Schedule
             </NavLink>
             <NavLink to="/focus" className={({ isActive }) => isActive ? "active" : ""}>
-              <span className="nav-icon">V</span> Focus
+              Focus
             </NavLink>
           </nav>
           <div className="sidebar-footer">
-            {user?.name || "Scholar"}
+            {user?.name || "Student"}
           </div>
         </aside>
         <main className="main">
