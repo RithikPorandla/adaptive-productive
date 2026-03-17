@@ -49,6 +49,9 @@ export const api = {
   completeFocus: (id) => request(`/focus/${id}/complete`, { method: "PUT" }),
   cancelFocus: (id) => request(`/focus/${id}/cancel`, { method: "PUT" }),
 
+  // Import
+  importICS: (userId, icsText) => request("/import/ics", { method: "POST", body: JSON.stringify({ user_id: userId, ics_text: icsText }) }),
+
   // Dashboard
   getDashboard: (userId) => request(`/dashboard?user_id=${userId}`),
 };
