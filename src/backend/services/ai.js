@@ -1,48 +1,68 @@
 /**
  * AI service for task decomposition, smart parsing, and study tips.
  *
- * Uses OpenAI GPT-4 when OPENAI_API_KEY is set; otherwise falls back to
+ * Uses Google Gemini when GEMINI_API_KEY is set; otherwise falls back to
  * rule-based heuristics so all features work without an API key during dev.
  */
 
-const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+function getApiKey() {
+  return process.env.GEMINI_API_KEY || null;
+}
 
-async function callLLM(apiKey, systemPrompt, userPrompt) {
-  const resp = await fetch(OPENAI_API_URL, {
+async function callGemini(prompt) {
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error("No GEMINI_API_KEY");
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const resp = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.4,
-      max_tokens: 600,
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
     }),
   });
-  if (!resp.ok) throw new Error(`OpenAI API error ${resp.status}`);
+
+  if (!resp.ok) {
+    const errBody = await resp.text();
+    throw new Error(`Gemini API error ${resp.status}: ${errBody}`);
+  }
+
   const data = await resp.json();
-  return data.choices[0].message.content.trim();
+  return data.candidates[0].content.parts[0].text.trim();
+}
+
+function extractJSON(raw) {
+  return raw.replace(/```json\n?/g, "").replace(/```/g, "").trim();
 }
 
 /**
  * Parse natural-language task input into structured fields.
  */
 export async function parseTaskInput(input) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (apiKey) return parseWithLLM(apiKey, input);
+  if (getApiKey()) {
+    try { return await parseWithGemini(input); } catch (e) { console.error("Gemini parse failed:", e.message); }
+  }
   return parseWithHeuristic(input);
 }
 
-async function parseWithLLM(apiKey, input) {
-  const raw = await callLLM(
-    apiKey,
-    `You parse student task descriptions into structured data. Return ONLY a JSON object with: title (string), priority ("low"|"medium"|"high"), due_date (ISO date string or null), estimated_minutes (number or null). Infer priority from urgency cues. Infer due_date from relative dates like "tomorrow", "friday", "next week". Today is ${new Date().toISOString().slice(0, 10)}.`,
-    input
+async function parseWithGemini(input) {
+  const raw = await callGemini(
+    `You parse student task descriptions into structured data. Return ONLY a JSON object with these fields:
+- title (string — the clean task name without dates/priority/time metadata)
+- priority ("low" | "medium" | "high")
+- due_date (ISO date string YYYY-MM-DD, or null)
+- estimated_minutes (number, or null)
+
+Infer priority from urgency cues (urgent/important/asap = high, optional/whenever = low).
+Infer due_date from relative dates. Today is ${new Date().toISOString().slice(0, 10)}.
+Infer estimated_minutes from time mentions (e.g. "3 hours" = 180).
+
+Input: "${input}"
+
+Respond with ONLY the JSON object, no explanation.`
   );
-  const jsonStr = raw.replace(/```json\n?/g, "").replace(/```/g, "").trim();
-  return JSON.parse(jsonStr);
+  return JSON.parse(extractJSON(raw));
 }
 
 function parseWithHeuristic(input) {
@@ -75,7 +95,7 @@ function parseWithHeuristic(input) {
   }
 
   let estimated_minutes = null;
-  const hourMatch = lower.match(/(\d+)\s*(?:hour|hr)/);
+  const hourMatch = lower.match(/(\d+)\s*(?:hours?|hrs?)/);
   const minMatch = lower.match(/(\d+)\s*(?:min)/);
   if (hourMatch) estimated_minutes = parseInt(hourMatch[1]) * 60;
   if (minMatch) estimated_minutes = (estimated_minutes || 0) + parseInt(minMatch[1]);
@@ -100,14 +120,18 @@ function parseWithHeuristic(input) {
  * Generate a contextual study tip based on today's workload.
  */
 export async function generateStudyTip(tasks, classes) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (apiKey) {
-    const context = `Today's classes: ${classes.map(c => c.title).join(", ") || "none"}. Tasks: ${tasks.map(t => `${t.title} (${t.priority}, ${t.status})`).join(", ") || "none"}.`;
-    const raw = await callLLM(apiKey,
-      "You are a friendly study coach for college students. Give one brief, actionable study tip (2-3 sentences) based on the student's current workload. Be specific and encouraging.",
-      context
-    );
-    return raw;
+  if (getApiKey()) {
+    try {
+      const context = `Today's classes: ${classes.map(c => c.title).join(", ") || "none"}. 
+Tasks: ${tasks.map(t => `${t.title} (priority: ${t.priority}, status: ${t.status}${t.due_date ? `, due: ${t.due_date}` : ""})`).join("; ") || "none"}.`;
+      return await callGemini(
+        `You are a friendly, encouraging study coach for college students. Based on this student's current workload, give one specific, actionable study tip in 2-3 sentences. Be warm and motivating.
+
+${context}
+
+Respond with just the tip, no prefix or formatting.`
+      );
+    } catch (e) { console.error("Gemini tip failed:", e.message); }
   }
   return generateTipHeuristic(tasks, classes);
 }
@@ -169,53 +193,25 @@ export function suggestNextTask(tasks) {
 
 /**
  * Decompose a task into 3-5 actionable subtasks.
- * @param {string} title  – parent task title
- * @param {string|null} description – optional context
- * @param {number|null} estimatedMinutes – total estimated effort
- * @returns {Promise<Array<{title: string, estimated_minutes: number}>>}
  */
 export async function decomposeTask(title, description, estimatedMinutes) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (apiKey) {
-    return decomposeWithOpenAI(apiKey, title, description, estimatedMinutes);
+  if (getApiKey()) {
+    try { return await decomposeWithGemini(title, description, estimatedMinutes); } catch (e) { console.error("Gemini decompose failed:", e.message); }
   }
   return decomposeWithHeuristic(title, description, estimatedMinutes);
 }
 
-async function decomposeWithOpenAI(apiKey, title, description, estimatedMinutes) {
-  const prompt = `You are a study planning assistant. Break the following assignment into 3-5 concrete, actionable subtasks. Each subtask should have a short title and an estimated duration in minutes.
+async function decomposeWithGemini(title, description, estimatedMinutes) {
+  const raw = await callGemini(
+    `You are a study planning assistant for college students. Break this assignment into 3-5 concrete, actionable subtasks. Each subtask should have a short title and an estimated duration in minutes.
 
 Assignment: ${title}${description ? `\nDetails: ${description}` : ""}${estimatedMinutes ? `\nTotal estimated effort: ${estimatedMinutes} minutes` : ""}
 
 Respond ONLY with a JSON array. Each element: {"title": "...", "estimated_minutes": N}
-No explanation, just the JSON array.`;
+No explanation, just the JSON array.`
+  );
 
-  const resp = await fetch(OPENAI_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
-      max_tokens: 500,
-    }),
-  });
-
-  if (!resp.ok) {
-    const errBody = await resp.text();
-    throw new Error(`OpenAI API error ${resp.status}: ${errBody}`);
-  }
-
-  const data = await resp.json();
-  const content = data.choices[0].message.content.trim();
-
-  // Parse JSON (strip potential markdown fences)
-  const jsonStr = content.replace(/```json\n?/g, "").replace(/```/g, "").trim();
-  const subtasks = JSON.parse(jsonStr);
-
+  const subtasks = JSON.parse(extractJSON(raw));
   if (!Array.isArray(subtasks)) throw new Error("AI response was not an array");
   return subtasks.slice(0, 5).map((s) => ({
     title: String(s.title),
@@ -227,7 +223,6 @@ function decomposeWithHeuristic(title, _description, estimatedMinutes) {
   const total = estimatedMinutes || 120;
   const lowerTitle = title.toLowerCase();
 
-  // Common assignment patterns
   if (lowerTitle.includes("paper") || lowerTitle.includes("essay") || lowerTitle.includes("report")) {
     return [
       { title: "Research and gather sources", estimated_minutes: Math.round(total * 0.25) },
@@ -254,7 +249,6 @@ function decomposeWithHeuristic(title, _description, estimatedMinutes) {
       { title: "Prepare for delivery", estimated_minutes: Math.round(total * 0.1) },
     ];
   }
-  // Generic fallback
   return [
     { title: "Understand requirements", estimated_minutes: Math.round(total * 0.15) },
     { title: "Plan approach", estimated_minutes: Math.round(total * 0.1) },

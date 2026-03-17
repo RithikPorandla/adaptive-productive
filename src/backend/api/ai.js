@@ -44,7 +44,7 @@ aiRouter.post("/tasks/:id/decompose", async (req, res) => {
 
     res.status(201).json({
       parent_task_id: task.id,
-      engine: process.env.OPENAI_API_KEY ? "openai" : "heuristic",
+      engine: process.env.GEMINI_API_KEY ? "gemini" : "heuristic",
       subtasks: created,
     });
   } catch (err) {
@@ -58,7 +58,7 @@ aiRouter.post("/parse-task", async (req, res) => {
     const { input } = req.body;
     if (!input) return res.status(400).json({ error: "input is required" });
     const parsed = await parseTaskInput(input);
-    res.json({ ...parsed, engine: process.env.OPENAI_API_KEY ? "openai" : "heuristic" });
+    res.json({ ...parsed, engine: process.env.GEMINI_API_KEY ? "gemini" : "heuristic" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -87,7 +87,7 @@ aiRouter.get("/insights", async (req, res) => {
     res.json({
       tip,
       next_task: next,
-      engine: process.env.OPENAI_API_KEY ? "openai" : "heuristic",
+      engine: process.env.GEMINI_API_KEY ? "gemini" : "heuristic",
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
