@@ -887,6 +887,89 @@ body {
   margin-top: 12px;
 }
 
+/* ─── Onboarding ─── */
+.onboard-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--bg);
+}
+.onboard-progress {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+.onboard-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s;
+}
+.onboard-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+.onboard-dot.done { background: var(--success); }
+.onboard-step {
+  max-width: 540px;
+  width: 100%;
+  text-align: center;
+}
+.onboard-icon { margin-bottom: 20px; }
+.onboard-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+.onboard-desc {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.onboard-subdesc {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+.onboard-btn {
+  padding: 10px 32px !important;
+  font-size: 15px !important;
+  margin-top: 8px;
+}
+.onboard-form {
+  text-align: left;
+  margin: 24px 0;
+}
+.onboard-form .form-group { margin-bottom: 16px; }
+.onboard-form input {
+  font-size: 15px !important;
+  padding: 11px 14px !important;
+}
+.onboard-import-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 24px;
+  text-align: left;
+}
+.onboard-import-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+.onboard-import-card:hover { border-color: var(--border-hover); }
+.onboard-import-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+}
+
 /* ─── Loading ─── */
 .loading-screen {
   display: flex;
