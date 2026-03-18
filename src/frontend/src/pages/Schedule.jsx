@@ -21,10 +21,15 @@ export default function Schedule() {
   const [popPos, setPopPos] = useState({ top: 100, left: 400 });
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [studyBlocks, setStudyBlocks] = useState([]);
   const [form, setForm] = useState({ title: "", day_of_week: "1", start_time: "09:00", end_time: "10:00", location: "", color: "#6c6cff" });
   const fileRef = useRef();
 
-  const load = () => { if (user) api.getSchedules({ user_id: user.id }).then(setSchedules).catch(console.error); };
+  const load = () => {
+    if (!user) return;
+    api.getSchedules({ user_id: user.id }).then(setSchedules).catch(console.error);
+    api.getInsights(user.id).then(d => setStudyBlocks(d.study_blocks || [])).catch(console.error);
+  };
   useEffect(load, [user]);
 
   const resetForm = () => setForm({ title: "", day_of_week: "1", start_time: "09:00", end_time: "10:00", location: "", color: "#6c6cff" });
@@ -168,6 +173,23 @@ export default function Schedule() {
                       <div className="cal-event-title">{s.title}</div>
                       {height > 30 && <div className="cal-event-meta">{s.start_time}–{s.end_time}</div>}
                       {height > 46 && s.location && <div className="cal-event-meta">{s.location}</div>}
+                    </div>
+                  );
+                })}
+                {/* Suggested study blocks on today's column */}
+                {dayIdx === todayDow && studyBlocks.map((b, i) => {
+                  const startMin = timeToMin(b.start_time);
+                  const top = ((startMin - START_HOUR * 60) / 60) * HOUR_PX;
+                  const height = Math.max((b.duration / 60) * HOUR_PX, 20);
+                  return (
+                    <div
+                      key={`sb-${i}`}
+                      className="cal-event"
+                      style={{ top, height, background: "rgba(129,140,248,0.06)", border: "1px dashed var(--accent)", borderLeft: "3px dashed var(--accent)", color: "var(--accent)" }}
+                      title={`Suggested: ${b.task_title}`}
+                    >
+                      <div className="cal-event-title" style={{ color: "var(--accent)", fontSize: 10 }}>Study: {b.task_title}</div>
+                      {height > 28 && <div className="cal-event-meta">{b.start_time}–{b.end_time}</div>}
                     </div>
                   );
                 })}

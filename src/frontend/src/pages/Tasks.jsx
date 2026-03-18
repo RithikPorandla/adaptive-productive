@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "../api";
 import { useUser } from "../App";
+import { extractTextFromPDF } from "../pdf-utils";
 
 const PRIORITY_CONFIG = {
   high: { color: "var(--danger)", label: "Urgent" },
@@ -17,6 +18,7 @@ export default function Tasks() {
   const [syllabusLoading, setSyllabusLoading] = useState(false);
   const [syllabusResult, setSyllabusResult] = useState(null);
   const [quickTitle, setQuickTitle] = useState("");
+  const pdfRef = useRef();
   const [form, setForm] = useState({ title: "", description: "", due_date: "", estimated_minutes: "", priority: "medium" });
   const [expandedTask, setExpandedTask] = useState(null);
 
@@ -48,6 +50,7 @@ export default function Tasks() {
     e.preventDefault();
     if (!syllabusText.trim()) return;
     setSyllabusLoading(true);
+    setSyllabusResult(null);
     try {
       const result = await api.importSyllabus(user.id, syllabusText);
       setSyllabusResult(result);
@@ -57,6 +60,26 @@ export default function Tasks() {
       setSyllabusResult({ error: err.message });
     } finally {
       setSyllabusLoading(false);
+    }
+  };
+
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSyllabusLoading(true);
+    setSyllabusResult(null);
+    try {
+      const text = await extractTextFromPDF(file);
+      if (!text.trim()) throw new Error("Could not extract text from PDF");
+      setSyllabusText(text);
+      const result = await api.importSyllabus(user.id, text);
+      setSyllabusResult(result);
+      loadTasks();
+    } catch (err) {
+      setSyllabusResult({ error: err.message });
+    } finally {
+      setSyllabusLoading(false);
+      if (pdfRef.current) pdfRef.current.value = "";
     }
   };
 
@@ -132,17 +155,46 @@ export default function Tasks() {
       </div>
 
       {showSyllabus && (
-        <div style={{ padding: "16px 32px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Import Syllabus</div>
-          <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12 }}>Paste your course syllabus below. Ada will extract all assignments, exams, and deadlines automatically.</div>
+        <div style={{ padding: "20px 32px", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Import Syllabus</div>
+          <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 16 }}>Upload a PDF or paste your syllabus text. Ada will extract all assignments, exams, and deadlines.</div>
+
+          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+            <label className="btn btn-primary" style={{ cursor: "pointer" }}>
+              Upload PDF
+              <input ref={pdfRef} type="file" accept=".pdf" onChange={handlePdfUpload} style={{ display: "none" }} />
+            </label>
+            <span style={{ fontSize: 13, color: "var(--text-muted)", alignSelf: "center" }}>or paste text below</span>
+          </div>
+
           <form onSubmit={handleSyllabus}>
-            <textarea className="syllabus-textarea" value={syllabusText} onChange={e => setSyllabusText(e.target.value)} placeholder={"Paste your syllabus text here...\n\nExample:\nCS 401 - Machine Learning\nMidterm Exam: March 25, 2026\nFinal Project Proposal: April 2, 2026\nProblem Set 5: Due March 21\n..."} />
-            <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
-              <button type="submit" className="btn btn-primary" disabled={syllabusLoading}>{syllabusLoading ? "Ada is reading..." : "Extract assignments"}</button>
-              {syllabusResult && !syllabusResult.error && <span style={{ fontSize: 13, color: "var(--success)" }}>Created {syllabusResult.total} tasks from syllabus</span>}
+            <textarea className="syllabus-textarea" value={syllabusText} onChange={e => setSyllabusText(e.target.value)} placeholder={"CS 401 - Machine Learning\nMidterm Exam: March 25, 2026\nFinal Project Proposal: April 2, 2026\nProblem Set 5: Due March 21\n..."} />
+            <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
+              <button type="submit" className="btn btn-primary" disabled={syllabusLoading || !syllabusText.trim()}>
+                {syllabusLoading ? "Ada is reading..." : "Extract assignments"}
+              </button>
+              {syllabusResult && !syllabusResult.error && (
+                <span style={{ fontSize: 14, color: "var(--success)" }}>
+                  Created {syllabusResult.total} tasks from syllabus
+                </span>
+              )}
               {syllabusResult?.error && <span style={{ fontSize: 13, color: "var(--danger)" }}>{syllabusResult.error}</span>}
             </div>
           </form>
+
+          {syllabusResult && !syllabusResult.error && syllabusResult.items && (
+            <div style={{ marginTop: 14, padding: "12px 14px", background: "var(--surface-active)", borderRadius: "var(--radius)", fontSize: 13 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6, color: "var(--text)" }}>Extracted items:</div>
+              {syllabusResult.items.map((item, i) => (
+                <div key={i} style={{ padding: "3px 0", color: "var(--text-secondary)" }}>
+                  <span className={`badge badge-${item.priority}`} style={{ marginRight: 6 }}>{item.priority}</span>
+                  {item.title}
+                  {item.due_date && <span style={{ color: "var(--text-muted)" }}> · {item.due_date}</span>}
+                  {item.estimated_minutes && <span style={{ color: "var(--text-muted)" }}> · {item.estimated_minutes}m</span>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
