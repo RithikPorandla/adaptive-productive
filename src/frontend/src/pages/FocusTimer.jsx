@@ -11,14 +11,19 @@ export default function FocusTimer() {
   const [history, setHistory] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState("");
+  const [profile, setProfile] = useState(null);
   const intervalRef = useRef(null);
 
-  useEffect(() => {
-    if (user) {
-      api.getFocusSessions(user.id).then(setHistory).catch(console.error);
-      api.getTasks({ user_id: user.id, status: "in_progress" }).then(setTasks).catch(console.error);
-    }
-  }, [user]);
+  const reload = () => {
+    if (!user) return;
+    api.getFocusSessions(user.id).then(setHistory).catch(console.error);
+    api.getTasks({ user_id: user.id, status: "in_progress" }).then(setTasks).catch(console.error);
+    api.getFocusProfile(user.id).then(p => {
+      setProfile(p);
+      if (!session && p.suggested_duration) { setDuration(p.suggested_duration); setTimeLeft(p.suggested_duration * 60); }
+    }).catch(console.error);
+  };
+  useEffect(reload, [user]);
 
   useEffect(() => {
     if (running && timeLeft > 0) {
@@ -28,6 +33,7 @@ export default function FocusTimer() {
   }, [running, timeLeft]);
 
   const fmt = s => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+  const fmtHour = h => `${h % 12 || 12}${h >= 12 ? "pm" : "am"}`;
 
   const handleStart = async () => {
     const s = await api.startFocus({ user_id: user.id, task_id: selectedTask || null, duration_minutes: duration });
@@ -35,11 +41,11 @@ export default function FocusTimer() {
   };
   const handleComplete = async () => {
     clearInterval(intervalRef.current); setRunning(false);
-    if (session) { await api.completeFocus(session.id); setSession(null); api.getFocusSessions(user.id).then(setHistory); }
+    if (session) { await api.completeFocus(session.id); setSession(null); reload(); }
   };
   const handleCancel = async () => {
     clearInterval(intervalRef.current); setRunning(false);
-    if (session) { await api.cancelFocus(session.id); setSession(null); api.getFocusSessions(user.id).then(setHistory); }
+    if (session) { await api.cancelFocus(session.id); setSession(null); reload(); }
     setTimeLeft(duration * 60);
   };
 
@@ -49,19 +55,59 @@ export default function FocusTimer() {
     <>
       <div className="page-topbar">
         <div className="page-topbar-left">
-          <span className="page-topbar-title">Focus Timer</span>
-          <span className="page-topbar-sub">{session ? "Session active" : "Ready"}</span>
+          <span className="page-topbar-title">Focus</span>
+          <span className="page-topbar-sub">
+            {session ? "Session active" : profile ? `${profile.streak} day streak · ${profile.completion_rate}% completion` : "Ready"}
+          </span>
         </div>
       </div>
       <div className="page-content">
+        {/* Focus insights bar */}
+        {profile && profile.total_sessions > 0 && (
+          <div className="focus-insights">
+            <div className="focus-insight-item">
+              <div className="focus-insight-val">{profile.streak}</div>
+              <div className="focus-insight-label">Day streak</div>
+            </div>
+            <div className="focus-insight-item">
+              <div className="focus-insight-val">{profile.completion_rate}%</div>
+              <div className="focus-insight-label">Completion</div>
+            </div>
+            <div className="focus-insight-item">
+              <div className="focus-insight-val">{profile.avg_duration}m</div>
+              <div className="focus-insight-label">Avg session</div>
+            </div>
+            <div className="focus-insight-item">
+              <div className="focus-insight-val">{profile.completed}</div>
+              <div className="focus-insight-label">Sessions done</div>
+            </div>
+            <div className="focus-insight-item">
+              <div className="focus-insight-val">{Math.round(profile.this_week_minutes / 60 * 10) / 10}h</div>
+              <div className="focus-insight-label">This week</div>
+            </div>
+            {profile.best_hours.length > 0 && (
+              <div className="focus-insight-item">
+                <div className="focus-insight-val">{fmtHour(profile.best_hours[0].hour)}</div>
+                <div className="focus-insight-label">Best time</div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="dash-grid">
-          {/* Left: Timer */}
+          {/* Timer */}
           <div className="card timer-display">
             <div className="timer-ring-outer" style={{ background: `conic-gradient(var(--accent) ${progress * 3.6}deg, var(--border) 0deg)` }}>
               <div className="timer-ring-inner">
                 <div className="timer-time">{fmt(timeLeft)}</div>
               </div>
             </div>
+
+            {!session && profile && profile.total_sessions > 0 && (
+              <div style={{ textAlign: "center", marginBottom: 16, fontSize: 13, color: "var(--text-muted)" }}>
+                Suggested: {profile.suggested_duration}min based on your patterns
+              </div>
+            )}
 
             {!session && (
               <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20 }}>
@@ -78,7 +124,7 @@ export default function FocusTimer() {
                   <div className="form-group" style={{ margin: 0, width: 180 }}>
                     <label>Task</label>
                     <select value={selectedTask} onChange={e => setSelectedTask(e.target.value)}>
-                      <option value="">No task</option>
+                      <option value="">Free focus</option>
                       {tasks.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
                     </select>
                   </div>
@@ -98,22 +144,19 @@ export default function FocusTimer() {
             </div>
           </div>
 
-          {/* Right: History */}
+          {/* History */}
           <div className="card">
             <div className="card-header">
-              <span className="card-title">History</span>
-              <span className="card-subtitle">{history.length} sessions</span>
+              <span className="card-title">Recent</span>
+              <span className="card-subtitle">{history.length} total</span>
             </div>
-            {history.length > 0 ? history.slice(0, 10).map(h => (
+            {history.length > 0 ? history.slice(0, 8).map(h => (
               <div key={h.id} className="list-item">
-                <span className={`badge badge-${h.status}`} style={{ fontSize: 10 }}>{h.status}</span>
+                <span className={`badge badge-${h.status}`}>{h.status}</span>
                 <span style={{ flex: 1 }}>{h.task_title || "Free focus"}</span>
                 <span className="list-item-secondary">{h.duration_minutes}m</span>
-                <span className="list-item-secondary">{new Date(h.started_at).toLocaleDateString()}</span>
               </div>
-            )) : (
-              <div style={{ padding: 32, textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>No sessions yet</div>
-            )}
+            )) : <div style={{ padding: 32, textAlign: "center", color: "var(--text-muted)" }}>No sessions yet</div>}
           </div>
         </div>
       </div>

@@ -48,6 +48,7 @@ export const api = {
   getFocusSessions: (userId) => request(`/focus?user_id=${userId}`),
   completeFocus: (id) => request(`/focus/${id}/complete`, { method: "PUT" }),
   cancelFocus: (id) => request(`/focus/${id}/cancel`, { method: "PUT" }),
+  getFocusProfile: (userId) => request(`/focus/profile?user_id=${userId}`),
 
   // Import
   importICS: (userId, icsText) => request("/import/ics", { method: "POST", body: JSON.stringify({ user_id: userId, ics_text: icsText }) }),
