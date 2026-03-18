@@ -29,7 +29,9 @@ async function callGemini(prompt) {
   }
 
   const data = await resp.json();
-  return data.candidates[0].content.parts[0].text.trim();
+  const parts = data.candidates[0].content.parts;
+  const textParts = parts.filter(p => p.text);
+  return textParts.map(p => p.text).join("").trim();
 }
 
 function extractJSON(raw) {
