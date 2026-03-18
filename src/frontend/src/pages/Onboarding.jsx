@@ -77,8 +77,8 @@ export default function Onboarding({ onComplete }) {
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
           </div>
           <h1 className="onboard-title">Welcome to Adaptive</h1>
-          <p className="onboard-desc">Your AI-powered study companion. Import your courses, and Ada will help you stay on top of everything.</p>
-          <p className="onboard-subdesc">Takes about 2 minutes to set up.</p>
+          <p className="onboard-desc">The AI-powered productivity app that adapts to how you study. It learns your schedule, your priorities, and your focus patterns — so you don't have to think about planning, just doing.</p>
+          <p className="onboard-subdesc">Set up in under 2 minutes.</p>
           <button className="btn btn-primary onboard-btn" onClick={handleNext}>Get started</button>
         </div>
       )}
