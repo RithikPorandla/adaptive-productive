@@ -238,7 +238,7 @@ Each object must have:
 Today is ${today}. Only include items with due dates from today onward (skip past dates). If the syllabus mentions a course name/code, include it.
 
 Syllabus text:
-${syllabusText.slice(0, 4000).replace(/"/g, "'")}
+${syllabusText.slice(0, 4000).replace(/"/g, "'").replace(/[\t\r]/g, " ").replace(/[^\x20-\x7E\n]/g, "")}
 
 Return ONLY the JSON array, no explanation.`
   );
