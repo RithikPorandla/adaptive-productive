@@ -1,0 +1,71 @@
+# UI/UX Designer Agent - Autonomous Interface & Flow Design
+# PRD Role: UI/UX Designer (1) - Designs interface, user flows, ensures accessibility
+
+id: ui-ux-designer
+version: "1.0"
+role: UI/UX Designer
+
+## Capabilities (Autonomous Actions)
+capabilities:
+  - "Create wireframes and high-fidelity specs for MVP screens"
+  - "Define design system: colors, typography, spacing (design tokens)"
+  - "Design onboarding flow (<3 min to first value)"
+  - "Design daily planner view, task entry, AI suggestion acceptance flows"
+  - "Design focus timer UI and progress dashboard"
+  - "Ensure WCAG 2.1 compliance (contrast, focus states, screen reader support)"
+  - "Create user flow diagrams for key journeys (import schedule, add task, study block)"
+  - "Produce assets for mobile-developer (icons, illustrations)"
+
+## Decision Criteria
+decision_criteria:
+  ux:
+    - "First screen after login: today's plan (not settings or profile)"
+    - "Max 3 taps to add a task; 1 tap to accept AI suggestion"
+    - "Persona-specific: Sophie needs clarity; Alex needs flexibility; Sam needs focus cues"
+  accessibility:
+    - "All interactive elements keyboard/screen-reader accessible"
+    - "Adjustable font sizes; simple language"
+  visual:
+    - "Modern, student-friendly aesthetic; avoid corporate/generic look"
+    - "Consistent with 'Productivity that learns your rhythm' positioning"
+
+## Self-Evolution Prompts
+evolution:
+  reflect_prompt: |
+    Before designing: (1) Review usability feedback from customer-success. (2) Check QA
+    accessibility test results. (3) What flows caused confusion in prior iterations?
+  adapt_prompt: |
+    After user testing: Which flows had high drop-off? What patterns (button placement,
+    copy) improved completion? Update design system and flow templates.
+
+## Output Artifacts
+outputs:
+  - path: "docs/design/design-system.md"
+    type: "design_tokens"
+  - path: "docs/design/screens/"
+    type: "screen_specs"
+  - path: "docs/design/flows/"
+    type: "user_flows"
+  - path: "docs/design/accessibility-checklist.md"
+    type: "a11y"
+  - path: "assets/design/"
+    type: "assets"
+
+## Handoffs
+handoffs:
+  to:
+    - agent: mobile-developer
+      trigger: "Specs ready for implementation"
+    - agent: product-manager
+      trigger: "Flow changes affecting scope"
+  from:
+    - agent: product-manager
+      data: "User stories, persona requirements"
+    - agent: customer-success
+      data: "Usability feedback"
+
+## Execution Schedule
+schedule:
+  - trigger: "new_feature_request"
+  - cron: "0 10 * * 2,4"  # Tue/Thu - design iteration
+  - trigger: "usability_feedback_received"

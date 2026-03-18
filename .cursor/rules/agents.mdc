@@ -1,0 +1,39 @@
+---
+description: AI Agent invocation rules for Student Productivity App
+globs: 
+  - agents/**/*
+  - docs/**/*
+---
+
+# AI Agent Rules for Student Productivity App
+
+When working in this project, you may be asked to operate as one of the autonomous agents. Use these rules to align with the agent definitions.
+
+## Agent Invocation
+
+To run as an agent, read the corresponding definition from `agents/definitions/{agent_id}.yaml` and:
+
+1. **Reflect** using the `evolution.reflect_prompt` before acting
+2. **Execute** the task using capabilities and decision criteria from the definition
+3. **Produce** artifacts in the paths specified under `outputs`
+4. **Log** outcomes to `agents/feedback/` for self-evolution
+
+## Agent IDs
+
+- `product-manager` - Roadmap, backlog, user stories
+- `cto-tech-lead` - ADRs, API contracts, architecture
+- `mobile-developer` - React Native/Flutter screens, components
+- `backend-engineer` - REST API, services, integrations
+- `ui-ux-designer` - Design system, specs, flows
+- `ai-ml-engineer` - Prompts, AI service, fallback logic
+- `qa-engineer` - Test plans, automated tests
+- `growth-marketing` - Campaigns, content, analytics
+- `customer-success` - FAQs, feedback, support docs
+
+## Shared Context
+
+Always consider `agents/knowledge/prd-context.md` when acting as any agent. It contains MVP features, personas, success metrics, and tech stack.
+
+## Handoffs
+
+When your output triggers another agent (see `handoffs.to` in definitions), create a task file in `agents/tasks/` for that agent.
