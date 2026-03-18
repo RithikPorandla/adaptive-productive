@@ -531,6 +531,117 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+/* ─── Calendar Grid ─── */
+.cal-wrap {
+  overflow-x: auto;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+  min-width: 700px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.cal-header {
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.cal-header.today { color: var(--accent); }
+.cal-corner {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+.cal-time-col {
+  border-right: 1px solid var(--border);
+}
+.cal-time-label {
+  height: 48px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 2px 6px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--border);
+}
+.cal-day-col {
+  position: relative;
+  border-right: 1px solid var(--border);
+}
+.cal-day-col:last-child { border-right: none; }
+.cal-hour-line {
+  height: 48px;
+  border-bottom: 1px solid var(--border);
+}
+.cal-event {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 11px;
+  line-height: 1.3;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 1;
+  border: 1px solid transparent;
+  transition: border-color 0.15s, filter 0.15s;
+}
+.cal-event:hover {
+  border-color: rgba(255,255,255,0.3);
+  filter: brightness(1.15);
+  z-index: 2;
+}
+.cal-event-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-event-meta {
+  font-size: 10px;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-click-zone {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+/* Edit popover */
+.cal-popover {
+  position: fixed;
+  z-index: 50;
+  background: var(--surface);
+  border: 1px solid var(--border-hover);
+  border-radius: 10px;
+  padding: 16px;
+  width: 300px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.cal-popover h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.cal-popover-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 /* ─── Loading ─── */
 .loading-screen {
   display: flex;
