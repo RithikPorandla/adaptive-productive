@@ -242,7 +242,11 @@ ${syllabusText.slice(0, 6000)}
 Return ONLY the JSON array, no explanation.`
   );
 
-  const items = JSON.parse(extractJSON(raw));
+  let cleaned = extractJSON(raw);
+  const arrStart = cleaned.indexOf("[");
+  const arrEnd = cleaned.lastIndexOf("]");
+  if (arrStart !== -1 && arrEnd !== -1) cleaned = cleaned.slice(arrStart, arrEnd + 1);
+  const items = JSON.parse(cleaned);
   if (!Array.isArray(items)) throw new Error("Failed to parse syllabus");
   return items;
 }
