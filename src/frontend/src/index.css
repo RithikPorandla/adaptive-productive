@@ -189,6 +189,99 @@ body {
   color: var(--text-muted);
 }
 
+/* ─── Prismo-style dashboard ─── */
+.prismo-hero {
+  text-align: center;
+  padding: 32px 0 24px;
+}
+.prismo-hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+.prismo-hero p {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+.prismo-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.prismo-stat {
+  text-align: center;
+  padding: 24px 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.2s;
+}
+.prismo-stat:hover { border-color: var(--border-hover); }
+.prismo-stat-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  font-size: 18px;
+}
+.prismo-stat-val {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.prismo-stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.prismo-section-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.prismo-bento {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.prismo-bento-wide {
+  grid-column: 1 / -1;
+}
+.prismo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+.prismo-card:hover { border-color: var(--border-hover); }
+.prismo-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.prismo-card-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
 /* ─── Dashboard Grid ─── */
 .dash-grid {
   display: grid;
