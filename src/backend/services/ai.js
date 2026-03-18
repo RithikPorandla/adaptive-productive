@@ -237,9 +237,7 @@ Each object must have:
 Today is ${today}. Only include items with due dates from today onward (skip past dates). If the syllabus mentions a course name/code, include it.
 
 Syllabus text:
-"""
-${syllabusText.slice(0, 6000)}
-"""
+${syllabusText.slice(0, 4000).replace(/"/g, "'")}
 
 Return ONLY the JSON array, no explanation.`
   );
@@ -248,9 +246,16 @@ Return ONLY the JSON array, no explanation.`
   const arrStart = cleaned.indexOf("[");
   const arrEnd = cleaned.lastIndexOf("]");
   if (arrStart !== -1 && arrEnd !== -1) cleaned = cleaned.slice(arrStart, arrEnd + 1);
-  const items = JSON.parse(cleaned);
-  if (!Array.isArray(items)) throw new Error("Failed to parse syllabus");
-  return items;
+  try {
+    const items = JSON.parse(cleaned);
+    if (!Array.isArray(items)) throw new Error("Not an array");
+    return items;
+  } catch (parseErr) {
+    cleaned = cleaned.replace(/[\x00-\x1f]/g, " ").replace(/,\s*]/g, "]");
+    const items = JSON.parse(cleaned);
+    if (!Array.isArray(items)) throw new Error("Failed to parse syllabus");
+    return items;
+  }
 }
 
 /**
