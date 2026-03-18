@@ -1,22 +1,23 @@
 :root {
-  --bg: #0a0a0b;
-  --bg-sidebar: #0f0f10;
-  --surface: #141416;
-  --surface-hover: #1a1a1d;
-  --surface-active: #202024;
-  --text: #ececed;
-  --text-secondary: #8b8b8e;
-  --text-muted: #4e4e52;
-  --border: #1e1e22;
-  --border-hover: #2c2c32;
-  --accent: #6c6cff;
-  --accent-bg: rgba(108,108,255,0.1);
+  --bg: #09090b;
+  --bg-sidebar: #0c0c0e;
+  --surface: #18181b;
+  --surface-hover: #1f1f23;
+  --surface-active: #27272a;
+  --text: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
+  --border: #27272a;
+  --border-hover: #3f3f46;
+  --accent: #818cf8;
+  --accent-bg: rgba(129,140,248,0.1);
   --success: #34d399;
   --success-bg: rgba(52,211,153,0.1);
   --warning: #fbbf24;
   --warning-bg: rgba(251,191,36,0.1);
   --danger: #f87171;
   --danger-bg: rgba(248,113,113,0.1);
+  --radius: 14px;
   --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -166,25 +167,25 @@ body {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   transition: border-color 0.2s;
 }
 .card:hover { border-color: var(--border-hover); }
-.card-padded { padding: 16px; }
+.card-padded { padding: 20px; }
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--border);
 }
 .card-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
 }
 .card-subtitle {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
@@ -210,8 +211,8 @@ body {
   flex: 1;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
+  border-radius: var(--radius);
+  padding: 22px;
   transition: border-color 0.2s;
 }
 .dash-stat:hover { border-color: var(--border-hover); }
@@ -247,8 +248,8 @@ body {
 
 /* ─── Buttons ─── */
 .btn {
-  padding: 6px 14px;
-  border-radius: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
   font-family: var(--font);
   font-size: 13px;
   font-weight: 500;
@@ -301,9 +302,9 @@ body {
 }
 .form-group input, .form-group select, .form-group textarea {
   width: 100%;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   font-family: var(--font);
   font-size: 14px;
   color: var(--text);
@@ -345,8 +346,8 @@ body {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 2px 10px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.6;
@@ -502,8 +503,8 @@ body {
 .task-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: var(--radius);
+  padding: 18px;
   transition: border-color 0.2s;
   cursor: pointer;
   display: flex;
@@ -561,7 +562,7 @@ body {
   flex: 1;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 16px;
   text-align: center;
 }
@@ -574,7 +575,7 @@ body {
   gap: 14px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 14px 16px;
   margin-bottom: 8px;
   border-left: 3px solid var(--accent);
@@ -584,7 +585,7 @@ body {
 .today-task-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 14px 16px;
   margin-bottom: 8px;
   transition: border-color 0.2s;
@@ -627,6 +628,41 @@ body {
   color: var(--text-muted);
   padding: 4px 16px 8px;
 }
+
+/* AI Coach persona */
+.ai-coach-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ai-coach-avatar {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: white;
+  flex-shrink: 0;
+}
+.ai-coach-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.ai-coach-role { font-size: 11px; color: var(--text-muted); }
+
+/* Syllabus import */
+.syllabus-textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 14px;
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+}
+.syllabus-textarea:focus { border-color: var(--accent); border-style: solid; }
+.syllabus-textarea::placeholder { color: var(--text-muted); }
 
 /* ─── Empty ─── */
 .empty { text-align: center; padding: 48px; color: var(--text-muted); font-size: 14px; }

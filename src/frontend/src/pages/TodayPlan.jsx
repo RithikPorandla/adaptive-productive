@@ -53,12 +53,15 @@ export default function TodayPlan() {
           </div>
         </div>
 
-        {/* AI tip */}
+        {/* Ada's tip */}
         {tip && (
           <div className="card ai-card card-padded" style={{ marginBottom: 20 }}>
-            <div className="ai-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a5 5 0 015 5c0 2-1 3-2 4l-1 1v2h-4v-2l-1-1c-1-1-2-2-2-4a5 5 0 015-5z"/><path d="M10 18h4"/><path d="M10 22h4"/></svg>
-              Today's tip
+            <div className="ai-coach-header">
+              <div className="ai-coach-avatar">A</div>
+              <div>
+                <div className="ai-coach-name">Ada</div>
+                <div className="ai-coach-role">Your study coach</div>
+              </div>
             </div>
             <div className="ai-text">{tip}</div>
           </div>

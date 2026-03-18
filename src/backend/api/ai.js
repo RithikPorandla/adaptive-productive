@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getDb } from "../db/index.js";
-import { decomposeTask, parseTaskInput, generateStudyTip, suggestNextTask } from "../services/ai.js";
+import { decomposeTask, parseTaskInput, generateStudyTip, suggestNextTask, extractSyllabus, suggestStudyBlocks } from "../services/ai.js";
 
 export const aiRouter = Router();
 
@@ -84,11 +84,53 @@ aiRouter.get("/insights", async (req, res) => {
     const tip = await generateStudyTip(tasks, classes);
     const next = suggestNextTask(tasks);
 
+    const schedules = db.prepare(
+      "SELECT * FROM schedules WHERE user_id = ? ORDER BY day_of_week, start_time"
+    ).all(user_id);
+    const studyBlocks = suggestStudyBlocks(schedules, tasks);
+
     res.json({
       tip,
       next_task: next,
+      study_blocks: studyBlocks,
       engine: process.env.GEMINI_API_KEY ? "gemini" : "heuristic",
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/ai/syllabus — Extract assignments/exams from syllabus text
+aiRouter.post("/syllabus", async (req, res) => {
+  try {
+    const { user_id, text } = req.body;
+    if (!user_id || !text) return res.status(400).json({ error: "user_id and text required" });
+
+    const items = await extractSyllabus(text);
+
+    const db = getDb();
+    const insert = db.prepare(
+      `INSERT INTO tasks (user_id, title, due_date, estimated_minutes, priority, description)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    );
+
+    const created = [];
+    const doInsert = db.transaction(() => {
+      for (const item of items) {
+        const info = insert.run(
+          user_id,
+          item.title,
+          item.due_date || null,
+          item.estimated_minutes || null,
+          item.priority || "medium",
+          item.course ? `Course: ${item.course}` : null
+        );
+        created.push({ id: info.lastInsertRowid, ...item });
+      }
+    });
+    doInsert();
+
+    res.status(201).json({ total: created.length, items: created });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

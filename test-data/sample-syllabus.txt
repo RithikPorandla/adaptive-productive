@@ -1,0 +1,32 @@
+CS 401 - Machine Learning
+Spring 2026, Prof. Sarah Chen
+Engineering Hall 305, Tu/Th 9:00-10:15 AM
+
+Course Schedule & Assignments:
+
+Week 5 (March 16-20): Neural Networks
+- Reading: Textbook Ch. 7-8
+- Problem Set 4 due March 20
+
+Week 6 (March 23-27): Deep Learning
+- Midterm Exam: March 25 (in class, covers Ch. 1-8)
+- No homework this week
+
+Week 7 (March 30 - April 3): Convolutional Neural Networks
+- Problem Set 5 due April 3
+- Final Project Proposal due April 2 (1 page, include dataset and methodology)
+
+Week 8 (April 6-10): Recurrent Neural Networks
+- Problem Set 6 due April 10
+- Project checkpoint: Data collection complete
+
+Week 10 (April 20-24): Review & Finals
+- Final Exam: April 22, 8:00-11:00 AM, Exam Hall A (comprehensive, one cheat sheet allowed)
+- Final Project Report due April 24 (10-15 pages)
+- Final Project Presentation: April 23-24 in class
+
+Grading:
+- Problem Sets: 30%
+- Midterm: 20%
+- Final Exam: 25%
+- Final Project: 25%

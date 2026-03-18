@@ -12,6 +12,10 @@ export default function Tasks() {
   const user = useUser();
   const [tasks, setTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [showSyllabus, setShowSyllabus] = useState(false);
+  const [syllabusText, setSyllabusText] = useState("");
+  const [syllabusLoading, setSyllabusLoading] = useState(false);
+  const [syllabusResult, setSyllabusResult] = useState(null);
   const [quickTitle, setQuickTitle] = useState("");
   const [form, setForm] = useState({ title: "", description: "", due_date: "", estimated_minutes: "", priority: "medium" });
   const [expandedTask, setExpandedTask] = useState(null);
@@ -38,6 +42,22 @@ export default function Tasks() {
     setForm({ title: "", description: "", due_date: "", estimated_minutes: "", priority: "medium" });
     setShowForm(false);
     loadTasks();
+  };
+
+  const handleSyllabus = async (e) => {
+    e.preventDefault();
+    if (!syllabusText.trim()) return;
+    setSyllabusLoading(true);
+    try {
+      const result = await api.importSyllabus(user.id, syllabusText);
+      setSyllabusResult(result);
+      setSyllabusText("");
+      loadTasks();
+    } catch (err) {
+      setSyllabusResult({ error: err.message });
+    } finally {
+      setSyllabusLoading(false);
+    }
   };
 
   const handleStatus = async (id, status) => { await api.updateTask(id, { status }); loadTasks(); if (expandedTask?.id === id) setExpandedTask(await api.getTask(id)); };
@@ -106,9 +126,25 @@ export default function Tasks() {
           <span className="page-topbar-sub">{active.length} active · {done.length} done</span>
         </div>
         <div className="page-topbar-right">
+          <button className="btn" onClick={() => { setShowSyllabus(!showSyllabus); setSyllabusResult(null); }}>{showSyllabus ? "Cancel" : "Import syllabus"}</button>
           <button className="btn" onClick={() => setShowForm(!showForm)}>{showForm ? "Cancel" : "+ Detailed"}</button>
         </div>
       </div>
+
+      {showSyllabus && (
+        <div style={{ padding: "16px 32px", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Import Syllabus</div>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12 }}>Paste your course syllabus below. Ada will extract all assignments, exams, and deadlines automatically.</div>
+          <form onSubmit={handleSyllabus}>
+            <textarea className="syllabus-textarea" value={syllabusText} onChange={e => setSyllabusText(e.target.value)} placeholder={"Paste your syllabus text here...\n\nExample:\nCS 401 - Machine Learning\nMidterm Exam: March 25, 2026\nFinal Project Proposal: April 2, 2026\nProblem Set 5: Due March 21\n..."} />
+            <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+              <button type="submit" className="btn btn-primary" disabled={syllabusLoading}>{syllabusLoading ? "Ada is reading..." : "Extract assignments"}</button>
+              {syllabusResult && !syllabusResult.error && <span style={{ fontSize: 13, color: "var(--success)" }}>Created {syllabusResult.total} tasks from syllabus</span>}
+              {syllabusResult?.error && <span style={{ fontSize: 13, color: "var(--danger)" }}>{syllabusResult.error}</span>}
+            </div>
+          </form>
+        </div>
+      )}
 
       <form onSubmit={handleQuickAdd} className="quick-add">
         <input value={quickTitle} onChange={e => setQuickTitle(e.target.value)} placeholder='Add a task — try "Write essay due Friday, 3 hours, high priority"' />

@@ -61,17 +61,30 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* AI Insights */}
+        {/* Ada - AI Study Coach */}
         {insights && (
           <div className="card ai-card card-padded" style={{ marginBottom: 16 }}>
-            <div className="ai-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a5 5 0 015 5c0 2-1 3-2 4l-1 1v2h-4v-2l-1-1c-1-1-2-2-2-4a5 5 0 015-5z"/><path d="M10 18h4"/><path d="M10 22h4"/></svg>
-              AI Study Coach
+            <div className="ai-coach-header">
+              <div className="ai-coach-avatar">A</div>
+              <div>
+                <div className="ai-coach-name">Ada</div>
+                <div className="ai-coach-role">Your study coach</div>
+              </div>
             </div>
             <div className="ai-text">{insights.tip}</div>
             {insights.next_task && (
               <div className="ai-suggestion">
-                <strong>Work on next:</strong> {insights.next_task.task.title} — {insights.next_task.reason}
+                <strong>Next up:</strong> {insights.next_task.task.title} — {insights.next_task.reason}
+              </div>
+            )}
+            {insights.study_blocks && insights.study_blocks.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>Suggested study blocks</div>
+                {insights.study_blocks.slice(0, 3).map((b, i) => (
+                  <div key={i} style={{ fontSize: 13, color: "var(--text-secondary)", padding: "4px 0" }}>
+                    {b.start_time}–{b.end_time} · {b.task_title} <span style={{ color: "var(--text-muted)" }}>({b.reason})</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>

@@ -122,14 +122,37 @@ function parseWithHeuristic(input) {
 export async function generateStudyTip(tasks, classes) {
   if (getApiKey()) {
     try {
-      const context = `Today's classes: ${classes.map(c => c.title).join(", ") || "none"}. 
-Tasks: ${tasks.map(t => `${t.title} (priority: ${t.priority}, status: ${t.status}${t.due_date ? `, due: ${t.due_date}` : ""})`).join("; ") || "none"}.`;
-      return await callGemini(
-        `You are a friendly, encouraging study coach for college students. Based on this student's current workload, give one specific, actionable study tip in 2-3 sentences. Be warm and motivating.
+      const activeTasks = tasks.filter(t => t.status !== "completed" && t.status !== "cancelled");
+      const highP = activeTasks.filter(t => t.priority === "high");
+      const inProg = activeTasks.filter(t => t.status === "in_progress");
+      const today = new Date().toISOString().slice(0, 10);
+      const dueToday = activeTasks.filter(t => t.due_date && t.due_date.startsWith(today));
+      const overdue = activeTasks.filter(t => t.due_date && t.due_date < today);
 
+      const context = `Today's date: ${today}
+Classes today: ${classes.map(c => `${c.title} (${c.start_time}-${c.end_time})`).join(", ") || "none"}
+High priority tasks: ${highP.map(t => `"${t.title}"${t.due_date ? ` due ${t.due_date}` : ""}`).join(", ") || "none"}
+In progress: ${inProg.map(t => `"${t.title}"`).join(", ") || "none"}
+Due today: ${dueToday.map(t => `"${t.title}"`).join(", ") || "none"}
+Overdue: ${overdue.map(t => `"${t.title}" was due ${t.due_date}`).join(", ") || "none"}
+Total active tasks: ${activeTasks.length}`;
+
+      return await callGemini(
+        `You are Ada, a warm and supportive AI study coach built into a student productivity app. You're like a smart older sister who's been through college and genuinely cares.
+
+Your personality:
+- Warm but direct — you don't sugarcoat, but you're never harsh
+- You use the student's actual task names and deadlines specifically
+- You give ONE concrete action step they can do RIGHT NOW
+- You acknowledge their effort and progress
+- You keep it to 3-4 sentences max
+- You occasionally use encouraging phrases naturally (not forced)
+- If they're overdue on something, address it with empathy not guilt
+
+Student's current situation:
 ${context}
 
-Respond with just the tip, no prefix or formatting.`
+Give your coaching tip. Don't prefix with "Ada:" or similar. Just speak naturally.`
       );
     } catch (e) { console.error("Gemini tip failed:", e.message); }
   }
@@ -189,6 +212,99 @@ export function suggestNextTask(tasks) {
   else reason = "Best to tackle next";
 
   return { task: best, reason };
+}
+
+/**
+ * Extract assignments, exams, and deadlines from syllabus text.
+ */
+export async function extractSyllabus(syllabusText) {
+  if (!getApiKey()) throw new Error("GEMINI_API_KEY required for syllabus extraction");
+
+  const today = new Date().toISOString().slice(0, 10);
+  const raw = await callGemini(
+    `You are a syllabus parser. Extract ALL assignments, exams, deadlines, and due dates from this course syllabus. Return ONLY a JSON array of objects.
+
+Each object must have:
+- "title" (string): assignment/exam name (e.g., "Midterm Exam", "Problem Set 3", "Research Paper")
+- "due_date" (string|null): ISO date YYYY-MM-DD. If only a week number or relative date is given, estimate based on a typical semester starting Jan 2026. If no date, use null.
+- "priority" ("low"|"medium"|"high"): "high" for exams/midterms/finals, "medium" for major assignments/papers, "low" for readings/optional work
+- "estimated_minutes" (number|null): estimated time to complete. Exams=120, papers=360, problem sets=90, readings=60, presentations=180
+- "type" ("exam"|"assignment"|"reading"|"project"): category
+- "course" (string): course name/code extracted from syllabus
+
+Today is ${today}. Only include items with due dates from today onward (skip past dates). If the syllabus mentions a course name/code, include it.
+
+Syllabus text:
+"""
+${syllabusText.slice(0, 6000)}
+"""
+
+Return ONLY the JSON array, no explanation.`
+  );
+
+  const items = JSON.parse(extractJSON(raw));
+  if (!Array.isArray(items)) throw new Error("Failed to parse syllabus");
+  return items;
+}
+
+/**
+ * Suggest study blocks based on schedule gaps and upcoming deadlines.
+ */
+export function suggestStudyBlocks(schedules, tasks) {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+
+  const todayClasses = schedules
+    .filter(s => s.day_of_week === dayOfWeek)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+  const urgentTasks = tasks
+    .filter(t => t.status !== "completed" && t.status !== "cancelled" && !t.parent_task_id)
+    .sort((a, b) => {
+      const scoreA = (a.priority === "high" ? 30 : a.priority === "medium" ? 15 : 0) + (a.due_date && a.due_date <= today.toISOString().slice(0, 10) ? 50 : 0);
+      const scoreB = (b.priority === "high" ? 30 : b.priority === "medium" ? 15 : 0) + (b.due_date && b.due_date <= today.toISOString().slice(0, 10) ? 50 : 0);
+      return scoreB - scoreA;
+    });
+
+  const gaps = [];
+  const dayStart = 8 * 60;
+  const dayEnd = 21 * 60;
+  const toMin = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+
+  let cursor = dayStart;
+  for (const cls of todayClasses) {
+    const start = toMin(cls.start_time);
+    const end = toMin(cls.end_time);
+    if (start > cursor + 30) {
+      gaps.push({ start: cursor, end: start, minutes: start - cursor });
+    }
+    cursor = Math.max(cursor, end);
+  }
+  if (dayEnd > cursor + 30) {
+    gaps.push({ start: cursor, end: dayEnd, minutes: dayEnd - cursor });
+  }
+
+  const fmtTime = m => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+  const suggestions = [];
+  let taskIdx = 0;
+  for (const gap of gaps) {
+    if (taskIdx >= urgentTasks.length) break;
+    const task = urgentTasks[taskIdx];
+    const blockLen = Math.min(gap.minutes, task.estimated_minutes || 45, 60);
+    if (blockLen >= 20) {
+      suggestions.push({
+        start_time: fmtTime(gap.start),
+        end_time: fmtTime(gap.start + blockLen),
+        duration: blockLen,
+        task_id: task.id,
+        task_title: task.title,
+        reason: task.due_date && task.due_date <= today.toISOString().slice(0, 10) ? "Due today" : task.priority === "high" ? "High priority" : "Next up",
+      });
+      taskIdx++;
+    }
+  }
+  return suggestions;
 }
 
 /**
