@@ -30,8 +30,9 @@ async function callGemini(prompt) {
 
   const data = await resp.json();
   const parts = data.candidates[0].content.parts;
-  const textParts = parts.filter(p => p.text);
-  return textParts.map(p => p.text).join("").trim();
+  const textParts = parts.filter(p => p.text && !p.thought);
+  if (textParts.length === 0) throw new Error("No text in Gemini response");
+  return textParts[textParts.length - 1].text.trim();
 }
 
 function extractJSON(raw) {
