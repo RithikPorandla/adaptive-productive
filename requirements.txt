@@ -1,3 +1,0 @@
-# Student Productivity App - Dependencies
-# For AI Agent Orchestrator
-pyyaml>=6.0
